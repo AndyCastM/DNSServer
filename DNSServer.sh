@@ -72,7 +72,7 @@ echo "Aplicando cambios en netplan"
 
 #Instalar bind9
 echo "Instalando bind9"
-sudo apt-get install bind9 bind9utils bind9-dnsutils bind9-doc 
+sudo apt update && sudo apt install bind9 bind9utils bind9-doc
 
 #Editar named.conf.local para las zonas
 echo "Configurando zonas"

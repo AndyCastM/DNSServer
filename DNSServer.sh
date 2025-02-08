@@ -71,10 +71,7 @@ echo "Aplicando cambios en netplan"
 
 #Instalar bind9
 echo "Instalando bind9"
-apt-get install bind9 bind9utils bind9-doc 
-
-#Configurar forwarders en named.conf.options
-echo "forwarders {8.8.8.8;};" | sudo tee -a /etc/bind/named.conf.options > /dev/null
+sudo apt-get install bind9 bind9utils bind9-doc 
 
 #Editar named.conf.local para las zonas
 echo "Configurando zonas"
@@ -120,6 +117,11 @@ sudo tee /etc/bind/db.$(echo $ip | awk -F. '{print $3"."$2"."$1}') > /dev/null <
 @       IN      NS      $dominio.
 $(echo $ip | awk -F. '{print $4}')     IN      PTR     $dominio.
 EOF
+
+#Editar resolv.conf
+sudo sed -i "/^search /c\search $dominio" /etc/resolv.conf    #Utilizo sed -i para modificar especificamente esa linea
+sudo sed -i "/^nameserver /c\nameserver $ip" /etc/resolv.conf
+
 
 #Reiniciar bind9
 echo "Reiniciando bind9"

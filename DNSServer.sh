@@ -47,11 +47,6 @@ until validar_ip "$ip"; do
     fi
 done
 
-#Editar resolv.conf para fijar la IP en el servidor DNS
-sudo sed -i "/^search /c\search $dominio" /etc/resolv.conf    #Utilizo sed -i para modificar especificamente esa linea
-sudo sed -i "/^nameserver /c\nameserver $ip" /etc/resolv.conf
-echo "Fijando la IP $ip para el servidor DNS"
-
 #Fijar una IP en netplan
 echo "network:
   version: 2
@@ -120,6 +115,10 @@ sudo tee /etc/bind/db.$(echo $ip | awk -F. '{print $3"."$2"."$1}') > /dev/null <
 $(echo $ip | awk -F. '{print $4}')     IN      PTR     $dominio.
 EOF
 
+#Editar resolv.conf para fijar la IP en el servidor DNS
+sudo sed -i "/^search /c\search $dominio" /etc/resolv.conf    #Utilizo sed -i para modificar especificamente esa linea
+sudo sed -i "/^nameserver /c\nameserver $ip" /etc/resolv.conf
+echo "Fijando la IP $ip para el servidor DNS"
 
 #Reiniciar bind9
 echo "Reiniciando bind9"

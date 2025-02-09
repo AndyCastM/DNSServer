@@ -6,11 +6,8 @@ function validar_ip {
     )
 
     $regex = "^((25[0-4]|2[0-4][0-9]|1?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|1?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|1?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|1?[0-9][0-9]?))$"
-    if ($ip -match $regex) {
-        return $true
-    } else {
-        return $false
-    }
+    
+    return $ip -match $regex
 }
 
 function validar_dominio {
@@ -18,39 +15,38 @@ function validar_dominio {
         [string]$dominio
     )
 
-    $regex = "^([a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}$"
-    if ($dominio -match $regex) {
-        return $true
-    } else {
-        return $false
-    }
-}
+    $regex = '^(?:[a-zA-Z0-9-]{4,}\.)+(com|net|edu|blog|mx|tech|site)$'
 
+    return $dominio -match $regex
+}
 
 Write-Host "Bienvenido a la configuración de tu servidor DNS"
 
 # Pedir dominio hasta que sea válido
-while ($true) {
+do{
     $dominio = Read-Host "Introduce el nombre de dominio que deseas configurar"
-    if (validar_dominio $dominio) {
-        Write-Host "Dominio válido: $dominio"
-        break
+    if (-not(validar_dominio $dominio)) {
+        Write-Output "Dominio no válido."
     } else {
-        Write-Host "Dominio inválido. Intena de nuevo"
+        Write-Output "Dominio valido. $dominio"
     }
-}
+} until (validar_dominio $dominio)
+
 # Pedir IP hasta que sea válida
-while ($true) {
+do {
     $ip = Read-Host "Introduce la dirección IP de tu servidor DNS"
-    if (validar_ip $ip) {
-        Write-Host "IP válida: $ip"
+    if (-not(validar_ip $ip)) {
+        Write-Output "IP no válida."
         break
     } else {
-        Write-Host "IP inválida. Intenta de nuevo"
+        Write-Output "IP valida: $ip"
     }
-}
+} until (validar_ip $ip)
 
 $partes = $ip -split "\."
+$partes[3] = "0"
+$IPScope = ($partes[0..2] -join ".") + ".0/24"
+$NetworkID = ($partes[2..0] -join ".") + ".in-addr.arpa.dns"
 Write-Verbose "Dirección IP separada por partes"
 #Fijar IP
 Write-Verbose "Fijando IP..."
@@ -66,7 +62,7 @@ Add-DnsServerPrimaryZone -Name $dominio -ZoneFile "$dominio.dns" -DynamicUpdate 
 
 #Configurar zona inversa
 Write-Verbose "Configurando zona inversa..."
-Add-DnsServerPrimaryZone -NetworkID $partes[0].$partes[1].$partes[2]."0/24" -ZoneFile "$partes[2].$partes[1].$partes[0].in-addr.arpa.dns" -DynamicUpdate None -PassThru
+Add-DnsServerPrimaryZone -NetworkID $IPScope -ZoneFile $NetworkID -DynamicUpdate None -PassThru
 
 #Crear registro A para dominio principal
 Write-Verbose "Creando registro A para dominio principal: $dominio"

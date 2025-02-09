@@ -12,7 +12,7 @@ validar_ip (){
 
 validar_dominio () {
     local dominio="$1"
-    local regex="^([a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}$"
+    local regex="^([a-zA-Z0-9-]{4,}\.)+(com|net|edu|blog|mx|tech|site)$"
 
     if [[ $dominio =~ $regex ]]; then
         return 0  #True
